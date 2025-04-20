@@ -13,12 +13,20 @@ const app = express();
 
 // CORS configuration (allowing frontend to access)
 const corsOptions = {
-  origin: "http://127.0.0.1:5500", // Frontend URL here (your local server)
-  methods: "GET, POST",
+  origin: [
+    "http://127.0.0.1:5500",  // Local development
+    "https://healthy-plants.netlify.app/", // Netlify deployment
+  ],
+  methods: "GET, POST, OPTIONS",    // Allow the correct methods
   allowedHeaders: "Content-Type, Authorization",
 };
 
 app.use(cors(corsOptions));
+
+// Allow OPTIONS method for preflight requests
+app.options("/detect", cors(corsOptions));  // Handle preflight requests
+
+// Parse incoming JSON requests
 app.use(bodyParser.json({ limit: "10mb" }));
 
 app.post("/detect", async (req, res) => {
@@ -59,6 +67,7 @@ app.post("/detect", async (req, res) => {
   }
 });
 
+// Set the port for the backend to listen on
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
   console.log(`🚀 Server running at http://localhost:${PORT}`)
