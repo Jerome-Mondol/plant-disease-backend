@@ -1,16 +1,17 @@
-import HF_TOKEN from "dotenv";
+const dotenv = require("dotenv");
 dotenv.config();
 
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args)); // workaround for node-fetch ESM
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
+const HF_TOKEN = process.env.HF_TOKEN;
 
-const app = express();
+const app = express();``
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" }));
-
 
 app.post("/detect", async (req, res) => {
   const imageBase64 = req.body.image;
@@ -23,14 +24,17 @@ app.post("/detect", async (req, res) => {
   console.log("✅ Received image, length:", imageBase64.length);
 
   try {
-    const response = await fetch("https://api-inference.huggingface.co/models/linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${HF_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ inputs: imageBase64 }),
-    });
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ inputs: imageBase64 }),
+      }
+    );
 
     const data = await response.json();
 
@@ -43,8 +47,13 @@ app.post("/detect", async (req, res) => {
     res.json(data);
   } catch (err) {
     console.error("💥 Server Error:", err);
-    res.status(500).json({ error: "Server error", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Server error", details: err.message });
   }
 });
 
-app.listen(5000, () => console.log("🚀 Server running at http://localhost:5000"));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () =>
+  console.log(`🚀 Server running at http://localhost:${PORT}`)
+);
