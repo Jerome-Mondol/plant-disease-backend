@@ -9,8 +9,16 @@ const fetch = (...args) =>
 
 const HF_TOKEN = process.env.HF_TOKEN;
 
-const app = express();``
-app.use(cors());
+const app = express();
+
+// CORS configuration (allowing frontend to access)
+const corsOptions = {
+  origin: "http://127.0.0.1:5500", // Frontend URL here (your local server)
+  methods: "GET, POST",
+  allowedHeaders: "Content-Type, Authorization",
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: "10mb" }));
 
 app.post("/detect", async (req, res) => {
@@ -47,9 +55,7 @@ app.post("/detect", async (req, res) => {
     res.json(data);
   } catch (err) {
     console.error("💥 Server Error:", err);
-    res
-      .status(500)
-      .json({ error: "Server error", details: err.message });
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 });
 
