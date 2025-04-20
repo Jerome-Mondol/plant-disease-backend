@@ -8,36 +8,25 @@ const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const HF_TOKEN = process.env.HF_TOKEN;
-
 const app = express();
 
-// CORS configuration (allowing frontend to access)
+// ✅ Allow your Netlify frontend
 const corsOptions = {
-  origin: [
-    "http://127.0.0.1:5500",  // Local development
-    "https://healthy-plants.netlify.app/", // Netlify deployment
-  ],
-  methods: "GET, POST, OPTIONS",    // Allow the correct methods
-  allowedHeaders: "Content-Type, Authorization",
+  origin: ["http://127.0.0.1:5500", "https://healthy-plants.netlify.app/"], // 👈 Replace with your actual Netlify site URL
+  methods: "GET,POST",
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
-
-// Allow OPTIONS method for preflight requests
-app.options("/detect", cors(corsOptions));  // Handle preflight requests
-
-// Parse incoming JSON requests
 app.use(bodyParser.json({ limit: "10mb" }));
 
 app.post("/detect", async (req, res) => {
   const imageBase64 = req.body.image;
 
   if (!imageBase64) {
-    console.error("❌ No image found in request body");
     return res.status(400).json({ error: "Image is required" });
   }
-
-  console.log("✅ Received image, length:", imageBase64.length);
 
   try {
     const response = await fetch(
@@ -55,19 +44,15 @@ app.post("/detect", async (req, res) => {
     const data = await response.json();
 
     if (data.error) {
-      console.error("💥 Hugging Face API Error:", data.error);
       return res.status(500).json({ error: data.error });
     }
 
-    console.log("✅ Got response from Hugging Face:", data);
     res.json(data);
   } catch (err) {
-    console.error("💥 Server Error:", err);
     res.status(500).json({ error: "Server error", details: err.message });
   }
 });
 
-// Set the port for the backend to listen on
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
   console.log(`🚀 Server running at http://localhost:${PORT}`)
