@@ -12,7 +12,7 @@ const app = express();
 
 // ✅ Allow your Netlify frontend
 const corsOptions = {
-  origin: ["http://127.0.0.1:5500", "https://healthy-plants.netlify.app/"], // 👈 Replace with your actual Netlify site URL
+  origin: ["http://127.0.0.1:5500", "https://healthy-plants.netlify.app"], // 👈 Replace with your actual Netlify site URL
   methods: "GET,POST",
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
