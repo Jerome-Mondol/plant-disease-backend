@@ -1,4 +1,5 @@
 const dotenv = require("dotenv");
+const OpenAI = require('openai');
 dotenv.config();
 
 const express = require("express");
@@ -8,9 +9,9 @@ const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const HF_TOKEN = process.env.HF_TOKEN;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const app = express();
 
-// ✅ Allow your Netlify frontend
 const corsOptions = {
   origin: ["http://127.0.0.1:5500", "https://healthy-plants.netlify.app"], // 👈 Replace with your actual Netlify site URL
   methods: "GET,POST",
@@ -27,7 +28,7 @@ app.post("/detect", async (req, res) => {
   if (!imageBase64) {
     return res.status(400).json({ error: "Image is required" });
   }
-
+  // Disease detection
   try {
     const response = await fetch(
       "https://api-inference.huggingface.co/models/linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification",
@@ -52,6 +53,36 @@ app.post("/detect", async (req, res) => {
     res.status(500).json({ error: "Server error", details: err.message });
   }
 });
+
+// Function to get suggestions from DeepSeek API
+const openai = new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: OPENROUTER_API_KEY, // Use your actual OpenRouter API Key
+    defaultHeaders: {
+      'HTTP-Referer': 'https:healthy-plants.netlify.app', // Replace with your site URL
+      'X-Title': 'Plant Disease Detector', // Replace with your site title
+    },
+  });
+
+  async function main() {
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'deepseek/deepseek-chat-v3-0324:free',
+        messages: [
+          {
+            role: 'user',
+            content: "What are the best practices for plant disease detection?",
+          },
+        ],
+      });
+
+      console.log(completion.choices[0].message);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  main();
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
