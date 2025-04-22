@@ -3,7 +3,6 @@ const OpenAI = require("openai");
 dotenv.config();
 
 const express = require("express");
-const cors = require("cors");
 const bodyParser = require("body-parser");
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
@@ -12,20 +11,33 @@ const HF_TOKEN = process.env.HF_TOKEN;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const app = express();
 
-// ✅ CORS Config
-const corsOptions = {
-  origin: ["http://127.0.0.1:5500", "https://healthy-plants.netlify.app"],
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-};
+// ✅ CORS Middleware (supports both local + Netlify)
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "https://healthy-plants.netlify.app",
+  ];
+  const origin = req.headers.origin;
 
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // ✅ Handle preflight requests
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 app.use(bodyParser.json({ limit: "10mb" }));
 
-// 🧪 Disease Detection Endpoint
+// 🌿 Disease Detection Route
 app.post("/detect", async (req, res) => {
   const imageBase64 = req.body.image;
 
@@ -58,7 +70,7 @@ app.post("/detect", async (req, res) => {
   }
 });
 
-// 💡 AI Suggestions Endpoint
+// 🤖 Suggestion Route (AI powered by DeepSeek via OpenRouter)
 app.post("/suggest", async (req, res) => {
   const openai = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
@@ -76,7 +88,7 @@ app.post("/suggest", async (req, res) => {
         {
           role: "user",
           content:
-            "What are the best practices for plant disease detection? give me 5 points each and every points must be under 8 words and also don't ask for anything later and don't give any explanation",
+            "What are the best practices for plant disease detection? give me 5 points each and every point must be under 8 words and also don't ask for anything later and don't give any explanation",
         },
       ],
     });
@@ -89,8 +101,7 @@ app.post("/suggest", async (req, res) => {
   }
 });
 
-// 🚀 Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
-  console.log(`🧠 Backend running at http://localhost:${PORT}`)
+  console.log(`🚀 Server running at http://localhost:${PORT}`)
 );
