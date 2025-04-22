@@ -71,7 +71,7 @@ app.post("/suggest", async (req, res) => {
       messages: [
         {
           role: 'user',
-          content: "What are the best practices for plant disease detection?",
+          content: "What are the best practices for plant disease detection? give me  5 points each and every points must me under 8 words and also dont ask for anything later and dont give any explanation",
         },
       ],
     });
