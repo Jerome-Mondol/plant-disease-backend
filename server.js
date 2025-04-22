@@ -55,34 +55,34 @@ app.post("/detect", async (req, res) => {
 });
 
 // Function to get suggestions from DeepSeek API
-const openai = new OpenAI({
+app.post("/suggest", async (req, res) => {
+  const openai = new OpenAI({
     baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: OPENROUTER_API_KEY, // Use your actual OpenRouter API Key
+    apiKey: OPENROUTER_API_KEY,
     defaultHeaders: {
-      'HTTP-Referer': 'https:healthy-plants.netlify.app', // Replace with your site URL
-      'X-Title': 'Plant Disease Detector', // Replace with your site title
+      'HTTP-Referer': 'https://healthy-plants.netlify.app',
+      'X-Title': 'Plant Disease Detector',
     },
   });
 
-  async function main() {
-    try {
-      const completion = await openai.chat.completions.create({
-        model: 'deepseek/deepseek-chat-v3-0324:free',
-        messages: [
-          {
-            role: 'user',
-            content: "What are the best practices for plant disease detection?",
-          },
-        ],
-      });
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'deepseek/deepseek-chat-v3-0324:free',
+      messages: [
+        {
+          role: 'user',
+          content: "What are the best practices for plant disease detection?",
+        },
+      ],
+    });
 
-      console.log(completion.choices[0].message);
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    const suggestions = completion.choices[0].message.content; // Extracting the suggestions
+    res.json({ suggestions }); // Send suggestions back to frontend
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: "Failed to fetch suggestions" });
   }
-
-  main();
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
